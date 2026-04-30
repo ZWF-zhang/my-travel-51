@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="format-detection" content="telephone=no">
+<title>💕 我们的五一旅行计划</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  background: #1a0a2e;
+  font-family: -apple-system, 'PingFang SC', '楷体', '华文楷体', STKaiti, serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  color: #fff;
+  /* 微信内置浏览器字体渲染优化 */
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 星星背景（纯CSS，不用Canvas，兼容性更好） */
+.stars {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.star {
+  position: absolute;
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: #fff;
+  animation: twinkle var(--d, 3s) ease-in-out infinite;
+  opacity: 0;
+}
+@keyframes twinkle {
+  0%,100% { opacity: 0; transform: scale(0.5); }
+  50% { opacity: var(--o, 0.6); transform: scale(1); }
+}
+
+.wrapper {
+  position: relative;
+  z-index: 1;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 0 80px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── 顶部标题 ── */
+.top-bar {
+  text-align: center;
+  padding: 30px 20px 16px;
+}
+.top-bar .logo {
+  font-size: 48px;
+  display: block;
+  animation: heartBeat 1.4s ease-in-out infinite;
+}
+@keyframes heartBeat {
+  0%,100% { transform: scale(1); }
+  14% { transform: scale(1.25); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.18); }
+  70% { transform: scale(1); }
+}
+.top-bar h1 {
+  font-size: 20px;
+  font-weight: bold;
+  background: linear-gradient(90deg,#ff85a2,#c77dff,#74c0fc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 4px;
+  margin-top: 8px;
+}
+.top-bar .subtitle {
+  font-size: 12px;
+  color: #bb99dd;
+  margin-top: 6px;
+  letter-spacing: 1px;
+}
+
+/* ── 进度条 ── */
+.progress-wrap {
+  padding: 0 24px 18px;
+}
+.progress-label {
+  font-size: 11px;
+  color: #cc99ee;
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+}
+.progress-bar-bg {
+  background: rgba(255,255,255,0.1);
+  border-radius: 10px;
+  height: 8px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 10px;
+  background: linear-gradient(90deg,#ff85a2,#c77dff,#74c0fc);
+  transition: width 0.6s ease;
+  box-shadow: 0 0 10px rgba(199,125,255,0.5);
+  width: 0%;
+}
+
+/* ── 步骤点 ── */
+.steps-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 20px 20px;
+}
+.dot {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  color: #888;
+  transition: all 0.4s ease;
+  cursor: pointer;
+}
+.dot.active {
+  border-color: #ff85a2;
+  background: rgba(255,133,162,0.25);
+  color: #ff85a2;
+  box-shadow: 0 0 12px rgba(255,133,162,0.5);
+  transform: scale(1.1);
+}
+.dot.done {
+  border-color: #c77dff;
+  background: rgba(199,125,255,0.2);
+  color: #c77dff;
+}
+
+/* ── 卡片 ── */
+.cards-viewport {
+  flex: 1;
+  padding: 0 16px;
+  position: relative;
+}
+.step-card {
+  display: none;
+}
+.step-card.show {
+  display: block;
+  animation: cardIn 0.5s ease both;
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(30px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.card-inner {
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+}
+.card-head {
+  padding: 24px 22px 18px;
+  position: relative;
+  overflow: hidden;
+}
+.card-head::after {
+  content: '';
+  position: absolute;
+  top: -40%; right: -15%;
+  width: 160px; height: 160px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.07);
+  pointer-events: none;
+}
+.card-day-num {
+  font-size: 11px;
+  letter-spacing: 2px;
+  opacity: 0.7;
+}
+.card-title {
+  font-size: 22px;
+  font-weight: bold;
+  margin: 5px 0 3px;
+}
+.card-date {
+  font-size: 12px;
+  opacity: 0.7;
+}
+.card-emoji {
+  position: absolute;
+  right: 20px; top: 16px;
+  font-size: 50px;
+  animation: floatAnim 3s ease-in-out infinite;
+}
+@keyframes floatAnim {
+  0%,100% { transform: translateY(0) rotate(-4deg); }
+  50% { transform: translateY(-8px) rotate(4deg); }
+}
+.card-body {
+  background: rgba(10,5,30,0.6);
+  padding: 18px 18px 20px;
+  backdrop-filter: blur(4px);
+}
+.info-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  align-items: flex-start;
+}
+.info-row .ico { font-size: 24px; flex-shrink: 0; margin-top: 2px; }
+.info-row .label {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  margin-bottom: 4px;
+  opacity: 0.6;
+}
+.info-row .val {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #eee;
+}
+.info-row .note {
+  font-size: 12px;
+  margin-top: 4px;
+  opacity: 0.5;
+}
+.stay-tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  margin-top: 6px;
+  font-weight: bold;
+}
+.map-tip {
+  text-align: center;
+  font-size: 12px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px dashed rgba(255,255,255,0.15);
+  color: #bbb;
+  margin-top: 6px;
+}
+.map-tip::before { content: '🗺️ '; }
+
+/* 主题色 */
+.d1 .card-head { background: linear-gradient(135deg,#b5005b,#ff4d94); }
+.d1 .info-row .label { color: #ff85a2; }
+.d1 .stay-tag { background: rgba(255,133,162,0.2); color: #ff85a2; border: 1px solid rgba(255,133,162,0.5); }
+
+.d2 .card-head { background: linear-gradient(135deg,#5a0080,#9d4edd); }
+.d2 .info-row .label { color: #c77dff; }
+.d2 .stay-tag { background: rgba(199,125,255,0.2); color: #c77dff; border: 1px solid rgba(199,125,255,0.5); }
+
+.d3 .card-head { background: linear-gradient(135deg,#003880,#339af0); }
+.d3 .info-row .label { color: #74c0fc; }
+.d3 .stay-tag { background: rgba(116,192,252,0.2); color: #74c0fc; border: 1px solid rgba(116,192,252,0.5); }
+
+.d4 .card-head { background: linear-gradient(135deg,#0a5c2a,#2f9e44); }
+.d4 .info-row .label { color: #69db7c; }
+.d4 .stay-tag { background: rgba(105,219,124,0.2); color: #69db7c; border: 1px solid rgba(105,219,124,0.5); }
+
+.d5 .card-head { background: linear-gradient(135deg,#8a3800,#e67700); }
+.d5 .info-row .label { color: #ffa94d; }
+.d5 .stay-tag { background: rgba(255,169,77,0.2); color: #ffa94d; border: 1px solid rgba(255,169,77,0.5); }
+
+.d6 .card-head { background: linear-gradient(135deg,#6a0080,#ff4d94); }
+
+/* ── 结局 ── */
+.ending-body { text-align: center; padding: 16px 10px 10px; }
+.ending-body .big-emoji {
+  font-size: 64px;
+  display: block;
+  margin-bottom: 14px;
+  animation: heartBeat 1.4s ease-in-out infinite;
+}
+.ending-body h2 {
+  font-size: 24px;
+  background: linear-gradient(90deg,#ff85a2,#c77dff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 16px;
+  letter-spacing: 3px;
+}
+.ending-body p {
+  font-size: 15px;
+  line-height: 2.1;
+  color: #ddd;
+  margin-bottom: 12px;
+}
+.route-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 16px;
+  font-size: 13px;
+  color: #bbb;
+}
+.route-node {
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.08);
+  white-space: nowrap;
+}
+.route-arrow { color: #ff85a2; }
+
+/* ── 按钮区 ── */
+.btn-area {
+  padding: 20px 16px 0;
+  display: flex;
+  gap: 10px;
+}
+.btn-prev {
+  flex: 0 0 52px;
+  height: 52px;
+  border-radius: 16px;
+  border: none;
+  background: rgba(255,255,255,0.08);
+  color: #aaa;
+  font-size: 22px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  -webkit-appearance: none;
+  transition: all 0.2s;
+}
+.btn-prev:active { background: rgba(255,255,255,0.15); transform: scale(0.95); }
+.btn-prev:disabled { opacity: 0.2; }
+.btn-next {
+  flex: 1;
+  height: 52px;
+  border-radius: 16px;
+  border: none;
+  font-size: 15px;
+  font-family: inherit;
+  letter-spacing: 2px;
+  color: #fff;
+  cursor: pointer;
+  background: linear-gradient(135deg,#ff4d94,#c77dff,#339af0);
+  box-shadow: 0 6px 20px rgba(199,125,255,0.4);
+  -webkit-appearance: none;
+  transition: transform 0.15s, box-shadow 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+.btn-next:active { transform: scale(0.97); }
+.btn-next::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+  animation: shine 3s ease infinite;
+}
+@keyframes shine {
+  0% { left: -100%; }
+  30%,100% { left: 150%; }
+}
+.btn-next:disabled {
+  opacity: 0.45;
+  box-shadow: none;
+}
+
+/* ── 烟花 ── */
+.firework {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  font-size: 22px;
+  animation: fwAnim 0.9s ease forwards;
+}
+@keyframes fwAnim {
+  0%   { opacity: 1; transform: translate(0,0) scale(1.2); }
+  100% { opacity: 0; transform: translate(var(--tx,0px), var(--ty,-80px)) scale(0.2); }
+}
+</style>
+</head>
+<body>
+
+<!-- 纯CSS星星背景（微信兼容，不需要Canvas） -->
+<div class="stars" id="stars"></div>
+
+<div class="wrapper">
+
+  <!-- 顶部 -->
+  <div class="top-bar">
+    <span class="logo">💝</span>
+    <h1>五 一 旅 行 解 锁</h1>
+    <div class="subtitle">点「下一步」解锁每天的惊喜行程 ✨</div>
+  </div>
+
+  <!-- 进度条 -->
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span id="progressText">第 1 步 / 共 6 步</span>
+      <span id="progressPct">0%</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressFill"></div>
+    </div>
+  </div>
+
+  <!-- 步骤点 -->
+  <div class="steps-dots">
+    <div class="dot active" data-i="0" onclick="goTo(0)">🌺</div>
+    <div class="dot" data-i="1" onclick="goTo(1)">🌊</div>
+    <div class="dot" data-i="2" onclick="goTo(2)">🎨</div>
+    <div class="dot" data-i="3" onclick="goTo(3)">🌿</div>
+    <div class="dot" data-i="4" onclick="goTo(4)">🌾</div>
+    <div class="dot" data-i="5" onclick="goTo(5)">💌</div>
+  </div>
+
+  <!-- 卡片区 -->
+  <div class="cards-viewport">
+
+    <!-- Day1 武义 -->
+    <div class="step-card d1 show" id="card-0">
+      <div class="card-inner">
+        <div class="card-head">
+          <div class="card-day-num">DAY 01 · 第一站</div>
+          <div class="card-title">武义探趣 🌺</div>
+          <div class="card-date">5月1日（周四）劳动节快乐</div>
+          <div class="card-emoji">🌺</div>
+        </div>
+        <div class="card-body">
+          <div class="info-row">
+            <div class="ico">🎯</div>
+            <div class="text">
+              <div class="label">目的地</div>
+              <div class="val">武义 · 温泉小城</div>
+              <div class="note">浙江金华，江南慢生活出发！</div>
+            </div>
+          </div>
+          <div class="info-row">
+            <div class="ico">🌄</div>
+            <div class="text">
+              <div class="label">游玩内容</div>
+              <div class="val">漫步古镇街巷，赏花拍照，探访武义温泉，感受江南小城的烟火气～</div>
+            </div>
+          </div>
+          <div class="info-row">
+            <div class="ico">🏡</div>
+            <div class="text">
+              <div class="label">今晚住宿</div>
+              <div class="val">永康 🏠</div>
+              <span class="stay-tag">🌙 返回永康入住</span>
+              <div class="note">逛永康夜市、吃夜宵 💗</div>
+            </div>
+          </div>
+          <div class="map-tip">武义 → 永康 约30分钟车程</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Day2 缙云仙都 -->
+    <div class="step-card d2" id="card-1">
+      <div class="card-inner">
+        <div class="card-head">
+          <div class="card-day-num">DAY 02 · 第二站</div>
+          <div class="card-title">仙都奇境 🏔️</div>
+          <div class="card-date">5月2日（周五）</div>
+          <div class="card-emoji">🏔️</div>
+        </div>
+        <div class="card-body">
+          <div class="info-row">
+            <div class="ico">🏔️</div>
+            <div class="text">
+              <div class="label">目的地</div>
+              <div class="val">缙云仙都</div>
+              <div class="note">道教圣地 · 鼎湖峰 · 仙气飘飘 ✨</div>
+            </div>
+          </div>
+          <div class="info-row">
+            <div class="ico">🌸</div>
+            <div class="text">
+              <div class="label">游玩内容</div>
+              <div class="val">登鼎湖峰"天下第一峰"，泛舟好溪，穿越仙都景区，和你一起进入神话世界～</div>
+            </div>
+          </div>
+          <div class="info-row">
+            <div class="ico">🌅</div>
+            <div class="text">
+              <div class="label">今晚住宿</div>
+              <div class="val">古堰画乡周边 🎨</div>
+              <span class="stay-tag">🌙 移步古堰画乡入住</span>
+              <div class="note">提前安顿好，明早看最美晨光 💜</div>
+            </div>
+          </div>
+          <div class="map-tip">缙云仙都 → 古堰画乡 约40分钟</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Day3 古堰画乡 -->
+    <div class="step-card d3" id="card-2">
+      <div class="card-inner">
+        <div class="card-head">
+          <div class="card-day-num">DAY 03 · 第三站</div>
+          <div class="card-title">古堰画乡 🎨</div>
+          <div class="card-date">5月3日（周六）</div>
+          <div class="card-emoji">🖼️</div>
+        </div>
+        <div class="card-body">
+          <div class="info-row">
+            <div class="ico">🖼️</div>
+            <div class="text">
+              <div class="label">目的地</div>
+              <div class="val">古堰画乡 · 丽水碧湖</div>
+              <div class="note">江南水墨小镇，文艺满满</div>
+            </div>
+          </div>
+          <div class="info-row">
+            <div class="ico">⛵</div>
+            <div class="text">
+              <div class="label">游玩内容</div>
+              <div class="val">漫步古堰老街，坐船游通济堰，参观油画村，在江南水墨里留下最美合影～</div>
+            </div>
+          </div>
+          <div class="info-row">
+            <div class="ico">🌃</div>
+            <div class="text">
+              <div class="label">今晚住宿</div>
+              <div class="val">畲族民宿 🎋</div>
+              <span class="stay-tag">🌙 前往畲乡入住</span>
+              <div class="note">体验少数民族风情民宿 💙</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Day4 云和梯田 -->
+    <div class="step-card d4" id="card-3">
+      <div class="card-inner">
+        <div class="card-head">
+          <div class="card-day-num">DAY 04 · 第四站</div>
+          <div class="card-title">云和梯田 🌾</div>
+          <div class="card-date">5月4日（周日）</div>
+          <div class="card-emoji">🗻</div>
+        </div>
+        <div class="card-body">
+          <div class="info-row">
+            <div class="ico">🗻</div>
+            <div class="text">
+              <div class="label">目的地</div>
+              <div class="val">云和梯田 🌾</div>
+              <div class="note">华东最大梯田 · 云雾缭绕</div>
+            </div>
+          </div>
+          <div class="info-row">
+            <div class="ico">📸</div>
+            <div class="text">
+              <div class="label">游玩内容</div>
+              <div class="val">站在梯田间看云雾升腾，拍下五一最美的瞬间，把大好时光都收入镜头～</div>
+            </div>
+          </div>
+          <div class="info-row">
+            <div class="ico">🌄</div>
+            <div class="text">
+              <div class="label">小贴士</div>
+              <div class="val">建议早起出发，晨光下梯田最美！</div>
+              <span class="stay-tag">🌅 日出时分最好看</span>
+            </div>
+          </div>
+          <div class="map-tip">早出发，云雾最美在清晨</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Day5 畲乡 -->
+    <div class="step-card d5" id="card-4">
+      <div class="card-inner">
+        <div class="card-head">
+          <div class="card-day-num">DAY 05 · 第五站</div>
+          <div class="card-title">畲乡风情 🌿</div>
+          <div class="card-date">5月5日（周一）</div>
+          <div class="card-emoji">🏘️</div>
+        </div>
+        <div class="card-body">
+          <div class="info-row">
+            <div class="ico">🏘️</div>
+            <div class="text">
+              <div class="label">目的地</div>
+              <div class="val">畲族村落 🎋</div>
+              <div class="note">原生态少数民族聚居地</div>
+            </div>
+          </div>
+          <div class="info-row">
+            <div class="ico">🥁</div>
+            <div class="text">
+              <div class="label">游玩内容</div>
+              <div class="val">探访畲族文化，品尝乌米饭，体验彩带编织非遗，在山林间撒欢拍照～</div>
+            </div>
+          </div>
+          <div class="info-row">
+            <div class="ico">⭐</div>
+            <div class="text">
+              <div class="label">住宿</div>
+              <div class="val">畲族民宿（连住两晚）</div>
+              <span class="stay-tag">🌙 山居夜，看满天繁星</span>
+              <div class="note">夜晚数星星，感受最原始的浪漫 💚</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 结局 -->
+    <div class="step-card d6" id="card-5">
+      <div class="card-inner">
+        <div class="card-head">
+          <div class="card-day-num">✨ 行程全部解锁 ✨</div>
+          <div class="card-date">2026 · 五一 · 浙南山水之旅</div>
+          <div class="card-emoji">💝</div>
+        </div>
+        <div class="card-body">
+          <div class="ending-body">
+            <span class="big-emoji">💕</span>
+            <h2>五 一 快 乐</h2>
+            <p>五天四夜，山水之间<br>
+            只想牵着你的手<br>
+            把每一处风景<br>
+            都留成我们的故事</p>
+            <p>武义的温泉、仙都的仙气<br>
+            古堰的水墨、畲乡的星空<br>
+            云和梯田上的云雾<br>
+            都是只属于我们的画面</p>
+            <p style="font-size:18px;color:#ff85a2;margin-top:10px;letter-spacing:2px;">
+              🌸 喜欢你，不止五一 🌸
+            </p>
+            <div class="route-line">
+              <div class="route-node">武义</div>
+              <div class="route-arrow">→</div>
+              <div class="route-node">永康</div>
+              <div class="route-arrow">→</div>
+              <div class="route-node">缙云</div>
+              <div class="route-arrow">→</div>
+              <div class="route-node">古堰</div>
+              <div class="route-arrow">→</div>
+              <div class="route-node">云和</div>
+              <div class="route-arrow">→</div>
+              <div class="route-node">畲乡</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /cards-viewport -->
+
+  <!-- 按钮 -->
+  <div class="btn-area">
+    <button class="btn-prev" id="btnPrev" onclick="prevStep()" disabled>‹</button>
+    <button class="btn-next" id="btnNext" onclick="nextStep()">解 锁 第 一 天 🌸</button>
+  </div>
+
+</div><!-- /wrapper -->
+
+<script>
+/* === 星星背景（CSS版，微信兼容） === */
+(function() {
+  var container = document.getElementById('stars');
+  var colors = ['#ff85a2','#c77dff','#74c0fc','#ffdd59','#fff'];
+  for (var i = 0; i < 60; i++) {
+    var s = document.createElement('div');
+    s.className = 'star';
+    s.style.left = Math.random() * 100 + '%';
+    s.style.top = Math.random() * 100 + '%';
+    s.style.setProperty('--d', (2 + Math.random() * 4).toFixed(1) + 's');
+    s.style.setProperty('--o', (0.3 + Math.random() * 0.5).toFixed(2));
+    s.style.animationDelay = (Math.random() * 5).toFixed(1) + 's';
+    var size = 1.5 + Math.random() * 2.5;
+    s.style.width = size + 'px';
+    s.style.height = size + 'px';
+    s.style.background = colors[Math.floor(Math.random() * colors.length)];
+    container.appendChild(s);
+  }
+})();
+
+/* === 状态机 === */
+var cur = 0;
+var total = 6;
+var btnLabels = [
+  '解 锁 第 一 天 🌸',
+  '解 锁 第 二 天 💜',
+  '解 锁 第 三 天 💙',
+  '解 锁 第 四 天 💚',
+  '解 锁 第 五 天 🧡',
+  '💌 查 看 我 想 对 你 说 的 话'
+];
+
+function goTo(idx) {
+  if (idx > cur) return;
+  var oldCard = document.getElementById('card-' + cur);
+  if (oldCard) oldCard.classList.remove('show');
+  cur = idx;
+  showCard();
+}
+
+function nextStep() {
+  if (cur >= total - 1) return;
+  var oldCard = document.getElementById('card-' + cur);
+  if (oldCard) oldCard.classList.remove('show');
+  cur++;
+  showCard();
+  spawnFireworks();
+}
+
+function prevStep() {
+  if (cur <= 0) return;
+  var oldCard = document.getElementById('card-' + cur);
+  if (oldCard) oldCard.classList.remove('show');
+  cur--;
+  showCard();
+}
+
+function showCard() {
+  var card = document.getElementById('card-' + cur);
+  if (!card) return;
+  card.classList.remove('show');
+  // 强制重排触发动画
+  var _ = card.offsetWidth;
+  card.classList.add('show');
+
+  // 进度
+  var pct = Math.round((cur / (total - 1)) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressText').textContent = '第 ' + (cur + 1) + ' 步 / 共 ' + total + ' 步';
+
+  // 按钮
+  var btnPrev = document.getElementById('btnPrev');
+  var btnNext = document.getElementById('btnNext');
+  btnPrev.disabled = (cur === 0);
+  if (cur === total - 1) {
+    btnNext.textContent = '🌸 旅程圆满，期待出发 🌸';
+    btnNext.disabled = true;
+  } else {
+    btnNext.textContent = btnLabels[cur + 1] || '下一步';
+    btnNext.disabled = false;
+  }
+
+  // 步骤点
+  var dots = document.querySelectorAll('.dot');
+  for (var i = 0; i < dots.length; i++) {
+    dots[i].classList.remove('active', 'done');
+    if (i === cur) dots[i].classList.add('active');
+    else if (i < cur) dots[i].classList.add('done');
+  }
+}
+
+/* === 烟花特效 === */
+var fwEmojis = ['💕','🌸','✨','💗','⭐','🎉','🌺','💜','💙','💚','🧡','🌟'];
+function spawnFireworks() {
+  for (var i = 0; i < 14; i++) {
+    (function(delay) {
+      setTimeout(function() {
+        var el = document.createElement('div');
+        el.className = 'firework';
+        el.textContent = fwEmojis[Math.floor(Math.random() * fwEmojis.length)];
+        var x = 15 + Math.random() * 70;
+        var y = 20 + Math.random() * 60;
+        el.style.left = x + 'vw';
+        el.style.top = y + 'vh';
+        var tx = ((Math.random() - 0.5) * 140).toFixed(0) + 'px';
+        var ty = (-(Math.random() * 130 + 30)).toFixed(0) + 'px';
+        el.style.setProperty('--tx', tx);
+        el.style.setProperty('--ty', ty);
+        document.body.appendChild(el);
+        setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 950);
+      }, delay);
+    })(i * 55);
+  }
+}
+
+/* 初始化 */
+showCard();
+</script>
+</body>
+</html>
